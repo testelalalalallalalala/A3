@@ -1,0 +1,299 @@
+package sistema;
+
+import javax.swing.*;
+import java.awt.*;
+import java.sql.*;
+import javax.swing.text.MaskFormatter;
+
+public class Sistema extends JFrame {
+
+    private static final String URL  = "jdbc:mysql://localhost:3306/a3";
+    private static final String USER = "root";
+    private static final String PASS = "";
+
+    private CardLayout layout = new CardLayout();
+    private JPanel painelTelas = new JPanel(layout);
+
+    private int idUsuarioLogado = -1;
+    private String nomeUsuarioLogado = "";
+
+    public Sistema() {
+        setTitle("Sistema Simples");
+        setSize(450, 350);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        painelTelas.add(telaLogin(), "login");
+        painelTelas.add(telaCadastroUsuario(), "cadUser");
+        painelTelas.add(telaDashboard(), "dash");
+        painelTelas.add(telaCadastrarFunko(), "cadFunko");
+        painelTelas.add(telaListaFunkos(), "lista");
+        painelTelas.add(telaEditarUsuario(), "editUser");
+
+        add(painelTelas);
+        setVisible(true);
+    }
+
+    private JPanel telaLogin() {
+        JPanel painel = new JPanel(new GridLayout(4, 2, 8, 8));
+
+        JTextField campoEmail = new JTextField();
+        JPasswordField campoSenha = new JPasswordField();
+
+        JButton botaoEntrar = new JButton("Entrar");
+        JButton botaoCadastrar = new JButton("Cadastrar-se");
+
+        painel.add(new JLabel("Email:"));    painel.add(campoEmail);
+        painel.add(new JLabel("Senha:"));    painel.add(campoSenha);
+        painel.add(botaoEntrar);             painel.add(botaoCadastrar);
+
+        botaoEntrar.addActionListener(e -> {
+            try (Connection conexao = DriverManager.getConnection(URL, USER, PASS)) {
+
+                PreparedStatement comandoSQL = conexao.prepareStatement(
+                    "SELECT id, nome FROM usuarios WHERE email=? AND senha=?"
+                );
+
+                comandoSQL.setString(1, campoEmail.getText().trim());
+                comandoSQL.setString(2, new String(campoSenha.getPassword()));
+
+                ResultSet resultadoSQL = comandoSQL.executeQuery();
+
+                if (resultadoSQL.next()) {
+                    idUsuarioLogado = resultadoSQL.getInt("id");
+                    nomeUsuarioLogado = resultadoSQL.getString("nome");
+
+                    JOptionPane.showMessageDialog(this, "Login realizado!");
+                    layout.show(painelTelas, "dash");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Credenciais inválidas!");
+                }
+
+            } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
+        botaoCadastrar.addActionListener(e -> layout.show(painelTelas, "cadUser"));
+
+        return painel;
+    }
+
+    private JPanel telaCadastroUsuario() {
+        JPanel painel = new JPanel(new GridLayout(7, 2, 8, 8));
+
+        JTextField campoNome = new JTextField();
+        JTextField campoEmail = new JTextField();
+        JTextField campoTelefone = new JTextField();
+        MaskFormatter mf = null;
+        try {
+            mf = new MaskFormatter("####-##-##");
+            mf.setPlaceholderCharacter('_');
+        } catch (Exception e) { e.printStackTrace(); }
+        JFormattedTextField campoNascimento = new JFormattedTextField(mf);
+        JPasswordField campoSenha = new JPasswordField();
+        
+        JButton botaoSalvar = new JButton("Cadastrar");
+        JButton botaoCancelar = new JButton("Cancelar");
+
+        painel.add(new JLabel("Nome:")); painel.add(campoNome);
+        painel.add(new JLabel("Email:")); painel.add(campoEmail);
+        painel.add(new JLabel("Senha:")); painel.add(campoSenha);
+        painel.add(new JLabel("Nascimento:")); painel.add(campoNascimento);
+        painel.add(new JLabel("Telefone:")); painel.add(campoTelefone);
+        painel.add(botaoSalvar);
+        painel.add(botaoCancelar);
+
+        botaoSalvar.addActionListener(e -> {
+            try (Connection conexao = DriverManager.getConnection(URL, USER, PASS)) {
+
+                PreparedStatement comandoSQL = conexao.prepareStatement(
+                    "INSERT INTO usuarios (nome, email, senha, data_nascimento, telefone) VALUES (?, ?, ?, ?, ?)"
+                );
+
+                comandoSQL.setString(1, campoNome.getText());
+                comandoSQL.setString(2, campoEmail.getText());
+                comandoSQL.setString(3, new String(campoSenha.getPassword()));
+                comandoSQL.setString(4, campoNascimento.getText());
+                comandoSQL.setString(5, campoTelefone.getText());
+
+                comandoSQL.executeUpdate();
+
+                JOptionPane.showMessageDialog(this, "Usuário cadastrado!");
+                layout.show(painelTelas, "login");
+
+            } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        
+        botaoCancelar.addActionListener(e -> layout.show(painelTelas, "login"));
+
+        return painel;
+    }
+
+    private JPanel telaDashboard() {
+        JPanel painel = new JPanel(new GridLayout(4, 1, 5, 5));
+
+        JButton botaoEditar = new JButton("Editar Usuário");
+        JButton botaoCadastrarFunko = new JButton("Cadastrar Funko");
+        JButton botaoListar = new JButton("Listar Funkos");
+        JButton botaoSair = new JButton("Sair");
+
+        painel.add(botaoEditar);
+        painel.add(botaoCadastrarFunko);
+        painel.add(botaoListar);
+        painel.add(botaoSair);
+
+        botaoEditar.addActionListener(e -> layout.show(painelTelas, "editUser"));
+        botaoCadastrarFunko.addActionListener(e -> layout.show(painelTelas, "cadFunko"));
+        botaoListar.addActionListener(e -> layout.show(painelTelas, "lista"));
+        botaoSair.addActionListener(e -> layout.show(painelTelas, "login"));
+
+        return painel;
+    }
+
+    private JPanel telaCadastrarFunko() {
+        JPanel painel = new JPanel(new GridLayout(7, 2, 8, 8));
+
+        JTextField campoNome = new JTextField();
+        JTextField campoPersonagem = new JTextField();
+        JTextField campoNumero = new JTextField();
+        JTextField campoLinha = new JTextField();
+        JTextField campoDescricao = new JTextField();
+        MaskFormatter mf = null;
+        try {
+            mf = new MaskFormatter("####-##-##");
+            mf.setPlaceholderCharacter('_');
+        } catch (Exception e) { e.printStackTrace(); }
+        JFormattedTextField campoData = new JFormattedTextField(mf);
+
+        JButton botaoSalvar = new JButton("Salvar");
+        JButton botaoCancelar = new JButton("Cancelar");
+
+        painel.add(new JLabel("Nome Funko:")); painel.add(campoNome);
+        painel.add(new JLabel("Personagem:")); painel.add(campoPersonagem);
+        painel.add(new JLabel("Número:")); painel.add(campoNumero);
+        painel.add(new JLabel("Linha:")); painel.add(campoLinha);
+        painel.add(new JLabel("Descrição:")); painel.add(campoDescricao);
+        painel.add(new JLabel("Data aquisição:")); painel.add(campoData);
+        painel.add(botaoSalvar);
+        painel.add(botaoCancelar);
+
+        botaoSalvar.addActionListener(e -> {
+            try (Connection conexao = DriverManager.getConnection(URL, USER, PASS)) {
+
+                PreparedStatement comandoSQL = conexao.prepareStatement(
+                    "INSERT INTO funkos (usuario_id, nome_funko, personagem, numero, linha, descricao, data_aquisicao) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                );
+
+                comandoSQL.setInt(1, idUsuarioLogado);
+                comandoSQL.setString(2, campoNome.getText());
+                comandoSQL.setString(3, campoPersonagem.getText());
+                comandoSQL.setString(4, campoNumero.getText());
+                comandoSQL.setString(5, campoLinha.getText());
+                comandoSQL.setString(6, campoDescricao.getText());
+                comandoSQL.setString(7, campoData.getText());
+
+                comandoSQL.executeUpdate();
+
+                JOptionPane.showMessageDialog(this, "Funko salvo!");
+                layout.show(painelTelas, "dash");
+
+            } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        
+        botaoCancelar.addActionListener(e -> layout.show(painelTelas, "dash"));
+
+        return painel;
+    }
+
+    private JPanel telaListaFunkos() {
+        JPanel painel = new JPanel(new BorderLayout());
+
+        JTextArea areaTexto = new JTextArea();
+        JButton botaoAtualizar = new JButton("Atualizar");
+        JButton botaoVoltar = new JButton("Voltar");
+
+        painel.add(new JScrollPane(areaTexto), BorderLayout.CENTER);
+
+        JPanel painelBotoes = new JPanel();
+        painelBotoes.add(botaoAtualizar);
+        painelBotoes.add(botaoVoltar);
+
+        painel.add(painelBotoes, BorderLayout.SOUTH);
+
+        botaoAtualizar.addActionListener(e -> {
+            try (Connection conexao = DriverManager.getConnection(URL, USER, PASS)) {
+
+                PreparedStatement comandoSQL = conexao.prepareStatement(
+                    "SELECT nome_funko, personagem, numero, data_aquisicao FROM funkos WHERE usuario_id=?"
+                );
+
+                comandoSQL.setInt(1, idUsuarioLogado);
+
+                ResultSet resultadoSQL = comandoSQL.executeQuery();
+
+                areaTexto.setText("");
+
+                while (resultadoSQL.next()) {
+                    areaTexto.append(
+                        "\nNome funko: " + resultadoSQL.getString("nome_funko") +
+                        "\nPersonagem: " + resultadoSQL.getString("personagem") +
+                        "\nNúmero: " + resultadoSQL.getString("numero") +
+                        "\nData aquisição: " + resultadoSQL.getString("data_aquisicao") +
+                        "\n------------------------------------"
+                    );
+                }
+
+            } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
+        botaoVoltar.addActionListener(e -> layout.show(painelTelas, "dash"));
+
+        return painel;
+    }
+
+    private JPanel telaEditarUsuario() {
+        JPanel painel = new JPanel(new GridLayout(5, 2, 8, 8));
+
+        JTextField campoNome = new JTextField();
+        JTextField campoEmail = new JTextField();
+        JTextField campoTelefone = new JTextField();
+        JPasswordField campoSenha = new JPasswordField();
+        JButton botaoSalvar = new JButton("Salvar");
+        JButton botaoCancelar = new JButton("Cancelar");
+
+        painel.add(new JLabel("Nome:")); painel.add(campoNome);
+        painel.add(new JLabel("Email:")); painel.add(campoEmail);
+        painel.add(new JLabel("Telefone:")); painel.add(campoTelefone);
+        painel.add(new JLabel("Senha:")); painel.add(campoSenha);
+        painel.add(botaoSalvar);
+        painel.add(botaoCancelar);
+
+        botaoSalvar.addActionListener(e -> {
+            try (Connection conexao = DriverManager.getConnection(URL, USER, PASS)) {
+
+                PreparedStatement comandoSQL = conexao.prepareStatement(
+                    "UPDATE usuarios SET nome=?, email=?, telefone=?, senha=? WHERE id=?"
+                );
+
+                comandoSQL.setString(1, campoNome.getText());
+                comandoSQL.setString(2, campoEmail.getText());
+                comandoSQL.setString(3, campoTelefone.getText());
+                comandoSQL.setString(4, new String(campoSenha.getPassword()));
+                comandoSQL.setInt(5, idUsuarioLogado);
+
+                comandoSQL.executeUpdate();
+
+                JOptionPane.showMessageDialog(this, "Dados atualizados!");
+                layout.show(painelTelas, "dash");
+
+            } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
+        botaoCancelar.addActionListener(e -> layout.show(painelTelas, "dash"));
+        
+        return painel;
+    }
+
+    public static void main(String[] args) {
+        new Sistema();
+    }
+}

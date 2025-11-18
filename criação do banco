@@ -1,19 +1,17 @@
-// Criação do banco de dados
-CREATE DATABASE IF NOT EXISTS funko_collection_db;
-USE funko_collection_db;
+create database a3;
+use a3;
 
-// Tabela: usuarios
 
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
+    senha VARCHAR(100) NOT NULL,
     data_nascimento DATE NOT NULL,
     telefone VARCHAR(15),
     email VARCHAR(100) NOT NULL UNIQUE,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-// Tabela: funkos
 
 CREATE TABLE funkos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -26,8 +24,11 @@ CREATE TABLE funkos (
     data_aquisicao DATE,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
+    -- Chave estrangeira
     CONSTRAINT fk_usuario
         FOREIGN KEY (usuario_id)
         REFERENCES usuarios(id)
         ON DELETE CASCADE
 );
+
+

@@ -1,28 +1,33 @@
 package sistema;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.*; //tela/botões
+import java.awt.*; //componentes gráficos
 import java.sql.*;
 import javax.swing.text.MaskFormatter;
 
 public class Sistema extends JFrame {
-
+    
+    //Config banco
     private static final String URL  = "jdbc:mysql://localhost:3306/a3";
     private static final String USER = "root";
     private static final String PASS = "";
-
+    
+    //troca de tela
     private CardLayout layout = new CardLayout();
     private JPanel painelTelas = new JPanel(layout);
-
+    
+    //Armazenagem do ID e Nome do usuário (variável)
     private int idUsuarioLogado = -1;
     private String nomeUsuarioLogado = "";
-
+    
+    //Config da Janela principal
     public Sistema() {
-        setTitle("Sistema Simples");
+        setTitle("SISTEMA FUNKOS");
         setSize(450, 350);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+       //Adição ao cardlayout
         painelTelas.add(telaLogin(), "login");
         painelTelas.add(telaCadastroUsuario(), "cadUser");
         painelTelas.add(telaDashboard(), "dash");
@@ -30,6 +35,7 @@ public class Sistema extends JFrame {
         painelTelas.add(telaListaFunkos(), "lista");
         painelTelas.add(telaEditarUsuario(), "editUser");
 
+        //exibição das telas
         add(painelTelas);
         setVisible(true);
     }
@@ -225,14 +231,18 @@ public class Sistema extends JFrame {
                 PreparedStatement comandoSQL = conexao.prepareStatement(
                     "SELECT nome_funko, personagem, numero, data_aquisicao FROM funkos WHERE usuario_id=?"
                 );
-
+                
                 comandoSQL.setInt(1, idUsuarioLogado);
 
                 ResultSet resultadoSQL = comandoSQL.executeQuery();
 
                 areaTexto.setText("");
+                
+                boolean encontrou = false;
 
+                //repete enquanto ter um registro
                 while (resultadoSQL.next()) {
+                    encontrou = true; 
                     areaTexto.append(
                         "\nNome funko: " + resultadoSQL.getString("nome_funko") +
                         "\nPersonagem: " + resultadoSQL.getString("personagem") +
@@ -241,7 +251,9 @@ public class Sistema extends JFrame {
                         "\n------------------------------------"
                     );
                 }
-
+                    if (!encontrou) {
+                    areaTexto.setText("Nenhum Funko encontrado para este usuário.");
+                }
             } catch (Exception ex) { ex.printStackTrace(); }
         });
 
@@ -274,6 +286,8 @@ public class Sistema extends JFrame {
                     "UPDATE usuarios SET nome=?, email=?, telefone=?, senha=? WHERE id=?"
                 );
 
+                //setstring para substituir o ? (oq foi informado em tela)
+                //get para pegar oq foi informado em tela
                 comandoSQL.setString(1, campoNome.getText());
                 comandoSQL.setString(2, campoEmail.getText());
                 comandoSQL.setString(3, campoTelefone.getText());

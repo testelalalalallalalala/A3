@@ -1,4 +1,4 @@
-# 🎯 Sistema de Gestão de Funko Pops  
+# Sistema de Gestão de Funko Pops  
 Aplicação simples desenvolvida em **Java (Swing)** com integração ao banco de dados **MySQL**, permitindo gerenciar usuários e coleções de Funkos.
 
 Este sistema possui telas de **login**, **cadastro de usuários**, **dashboard**, **cadastro de funkos**, **listagem de funkos** e **edição de usuário**, utilizando `CardLayout` para navegação entre telas.

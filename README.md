@@ -83,11 +83,41 @@ Salva no banco via `INSERT INTO funkos`.
 
 ---
 
+Instalação do MySQL e XAMPP
+
+Para que o sistema funcione corretamente, é necessário ter um servidor MySQL rodando localmente. A forma mais simples é utilizando o XAMPP, que já vem com o MySQL (MariaDB) integrado.
+
+1. Instalar o XAMPP
+
+Acesse o site oficial: https://www.apachefriends.org
+
+Baixe a versão mais recente para Windows.
+
+Execute o instalador e finalize a instalação mantendo as configurações padrão.
+
+2. Iniciar o MySQL pelo XAMPP
+
+Abra o XAMPP Control Panel.
+
+Clique em Start no módulo MySQL.
+
+Quando ficar verde, o servidor já está ativo e pronto para ser usado.
+
+3. Acessar o phpMyAdmin
+
+Com o MySQL iniciado, clique no botão Admin ao lado de MySQL
+— isso abre o phpMyAdmin no navegador.
+
+No phpMyAdmin, crie o banco de dados conforme abaixo;
+
 ## Banco de Dados (MySQL)
 
 ### Exemplo de criação das tabelas:
 
 ```sql
+create database a3;
+use a3;
+
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100),
@@ -108,3 +138,4 @@ CREATE TABLE funkos (
     data_aquisicao VARCHAR(20),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
+
